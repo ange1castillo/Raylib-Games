@@ -1,0 +1,11 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Pong",
+            "command": "make Pong",
+            "options": {"cwd": "${workspaceFolder}"},
+        }
+    ],
+    "version": "2.0.0"
+}
