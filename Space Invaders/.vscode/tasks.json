@@ -1,0 +1,11 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Space Invaders",
+            "command": "make Space Invaders",
+            "options": {"cwd": "${workspaceFolder}"},
+        }
+    ],
+    "version": "2.0.0"
+}
