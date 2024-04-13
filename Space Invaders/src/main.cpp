@@ -17,6 +17,10 @@ class Laser{
 
         }
 
+        bool isActive(){
+            return m_active;
+        }
+
         void Update(){
             m_position.y += m_speed;
             if(m_active){
@@ -48,7 +52,7 @@ class Spaceship{
             UnloadTexture(m_image);
         }
 
-        std::vector<Laser> GetLasers() const {
+        std::vector<Laser>& GetLasers() {
             return m_lasers;
         }
 
@@ -78,8 +82,66 @@ class Spaceship{
                 m_lastFiredTime = GetTime();
             }
         }
+};
 
-        friend class Game;
+class Block{
+    private:
+        Vector2 m_position {};
+
+    public:
+        Block(Vector2 position)
+            : m_position {position}
+        {
+
+        }
+        void Draw(){
+            DrawRectangle(m_position.x, m_position.y, 3, 3, BLUE);
+
+        }
+};
+
+class Obstacle{
+    private:
+        Vector2 m_position {};
+        std::vector<Block> m_blocks {};
+        std::vector<std::vector<int>> m_grid{};
+
+    public: 
+        Obstacle(Vector2 position)
+            : m_position {position}
+        {
+            m_grid = {
+                {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+                {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+                {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+                {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1}
+            };
+
+            for(std::size_t row{0}; row < m_grid.size(); ++row){
+                for(std::size_t column {0}; column < m_grid[row].size(); ++column){
+                    if(m_grid[row][column] == 1){
+                        float posX {m_position.x + column * 3};
+                        float posY {m_position.y + row * 3};
+                        m_blocks.push_back(Block({posX, posY}));
+                    }
+                }
+            }
+        }
+
+        void Draw(){
+            for(auto& block: m_blocks){
+                block.Draw();
+            }
+        }
 };
 
 class Game{
@@ -97,14 +159,21 @@ class Game{
 
         void Draw(){
             spaceship.Draw();
-            for(auto& laser: spaceship.m_lasers){
+            for(auto& laser: spaceship.GetLasers()){
                 laser.Draw();
             }
         }
 
         void Update(){
-            for(auto& laser: spaceship.m_lasers){
-                laser.Update();
+            for(auto p{spaceship.GetLasers().begin()}; p != spaceship.GetLasers().end();){
+
+                p->Update();
+                if(!p->isActive()){
+                    spaceship.GetLasers().erase(p);
+                }
+                else{
+                    ++p;
+                }
             }
         }
 
@@ -132,6 +201,7 @@ int main(void) {
     SetTargetFPS(60);
 
     Game game {};
+    Obstacle obstacle {{100, 100}};
 
     while(!WindowShouldClose()){
 
@@ -143,6 +213,7 @@ int main(void) {
         ClearBackground(grey);
 
         game.Draw();
+        obstacle.Draw();
 
         EndDrawing();
     }
